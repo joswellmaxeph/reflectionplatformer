@@ -3,9 +3,14 @@
 ## Scenes
 
 ### Welcome Splash
-"Welcome to Hyland @ the MCC!"
+"SEASONS"
+
+-> show seasons shifting
+-> show high scores
 
 "PRESS START"
+
+
 
 ### Character Selection
 "Choose your character"

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_DB_URI, { dbName: "mccplatformer" });
+    const conn = await mongoose.connect(process.env.MONGO_DB_URI, { dbName: "reflectionplatformer" });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Error: ${error.message}`);
