@@ -16,12 +16,6 @@ export default class TitleSplash extends Phaser.Scene {
     const height = this.scale.height;
     window.tryingAgain = false;
 
-    const hyland = this.add.image(width * .5, height * .25, 'hyland');
-    hyland.setScale(.25);
-
-    const mcc = this.add.image(width * .5, height * .5, 'mcc');
-    mcc.setScale(.25);
-
     const startMsg = `PRESS ${window.CONTROLLER ? "START" : "SPACE"}`;
 
     const pressStartText = this.add.bitmapText(width * .5, height * .75, 'pixelfontyellow', startMsg, 24).setOrigin(0.5);
@@ -50,7 +44,7 @@ export default class TitleSplash extends Phaser.Scene {
       blinkEvent.remove();
       this.cameras.main.fadeOut(500, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start("CharacterSelect");
+        this.scene.start("NeighborhoodScene");
       });
     }, this);
 
