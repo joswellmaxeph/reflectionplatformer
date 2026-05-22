@@ -1,0 +1,8 @@
+☐ add pause menu with restart option ("would you like to restart? y/n" start->start closes, start->a restarts, maybe start->right->a closes)
+☐ Fix db
+☐ Title screen
+☐ Fade instructions automatically, allow movement during...
+☐ build tilemaps including coins / enemies / key / door
+☐ Actually make styled tiles
+☐ Get CRT TV
+☐ Test on CRT TV
