@@ -2,13 +2,22 @@ html, body {
   margin: 0;
   overflow: hidden;
   height: 100vh;
-  background: #444;
+  background: white;
   text-align: center;
 }
 
 canvas {
   height: 100%;
   width: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  -webkit-box-reflect: right .25%;
+}
+
+canvas.flippy {
+  -webkit-box-reflect: left .25%;
 }
 
 div.overlay {

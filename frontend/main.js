@@ -8,7 +8,7 @@ import GameOverScene from "./scenes/GameOverScene.js";
 const config = {
   type: Phaser.AUTO,
   width: 512,
-  height: 386,
+  height: 384,
   pixelArt: true,
   antiAlias: false,
   scene: [Preloader, NeighborhoodScene, TitleSplash, CharacterSelect, MccInteriorScene, GameOverScene],

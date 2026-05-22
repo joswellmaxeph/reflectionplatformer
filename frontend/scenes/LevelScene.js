@@ -42,6 +42,12 @@ Good luck!`;
     this.movingOn = false;
     this.spaceDown = false;
 
+    this.mirrored = false;
+    this.canvasLeft = 0;
+
+    this.baseRunVel = 160;
+    this.baseJumpVel = -330;
+
     this.bulbCount = 0;
 
     const sky = this.add.image(width * .5, height * .5, this.skyImgName).setScrollFactor(0, 0);
@@ -50,6 +56,7 @@ Good luck!`;
 
     const map = this.make.tilemap({ key: this.tileMapName});
     const tileset = map.addTilesetImage('groundset', 'tiles');
+    const tileset2 = map.addTilesetImage('groundset', 'tiles2');
     const mccSideTileset = map.addTilesetImage('MccSideTileset', 'MccSideImg');
     const hylandClassroomTileset = map.addTilesetImage('HylandClassroomTileset', 'HylandClassroom3');
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels, true, true, false, true);
@@ -59,7 +66,7 @@ Good luck!`;
     bgBasic.setDepth(.05);
 
     const ground = map.createLayer('ground', tileset);
-    ground.setDepth(0);
+    ground.setDepth(1);
     const lightbulbsLayer = map.getObjectLayer('lightbulbs')['objects'];
     const monstersObjectLayer = map.getObjectLayer('MonstersLayer');
     const monstersLayer = monstersObjectLayer ? monstersObjectLayer['objects'] : [];
@@ -175,19 +182,11 @@ Good luck!`;
       this.physics.add.existing(door, true);
       
       this.physics.add.overlap(this.player, door, () => {
-        if (this.movingOn) return;
-        this.timeTicking = false;
-        this.currentScore = this.currentScore + this.timeLimit;
-        this.movingOn = true;
-        door.setFillStyle(0x000000, 1);
-        this.player.setVelocityX(Phaser.Math.Linear(160, 0, .7));
-        this.player.anims.play('turn');
-        this.player.setAlpha(Phaser.Math.Linear(1, 0, .5));
-        
-        this.cameras.main.fadeOut(1000, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.start(this.nextSceneThroughDoor, {playerSpriteName: this.playerSpriteName, currentScore: this.currentScore, win: true});
-        });
+        if (this.player.x >= 2032) {
+          this.map.addTilesetImage('groundset', 'tiles2');
+          this.mirrored = true;
+          this.baseJumpVel = -400;
+        }
       });
     });
 
@@ -236,6 +235,7 @@ Good luck!`;
     this.timeTicking = true;
     
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.wasd = this.input.keyboard.addKeys('W,A,S,D');
 
     this.cameras.main.startFollow(this.player);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -279,14 +279,47 @@ Good luck!`;
 
     this.instructionsText = this.add.bitmapText(width* .5, height * .5, "pixelfont", this.instructionsString, 12).setOrigin(.5, .5).setScrollFactor(0, 0);
     this.instructionsText.setDepth(4);
+    this.instructionsText.setScale(-1, 1);
 
     this.aBtn = this.add.image(width * .87, height * .78 + 20, 'ABtn').setOrigin(1, 1).setScrollFactor(0, 0);
     this.aBtn.setAlpha(window.CONTROLLER ? 1 : 0);
     this.aBtn.setDepth(4);
+
+    this.map = map;
   }
 
   update() {
     this.scoreText.setText(`SCORE: ${this.currentScore}`);
+
+    const canvasElement = document.querySelector('canvas');
+
+    if (this.mirrored && this.wasd.A.isDown) {
+      this.map.addTilesetImage('groundset', 'tiles');
+      this.mirrored = false;
+      this.baseRunVel = 200;
+    }
+
+    if (this.player.x >= 1792) {
+      canvasElement.classList.remove("flippy");
+      this.canvasLeft = Math.min(0, -50 * ((1792 - this.player.x) / (1792 - 2032)));
+
+      if (this.mirrored) {
+        this.canvasLeft = -100.25 + Math.max(0, 50 * ((1792 - this.player.x) / (1792 - 2032)));
+      }
+    } else if (this.player.x <= 240) {
+      canvasElement.classList.add("flippy");
+      this.canvasLeft = 50 * ((240 - this.player.x) / 240);
+
+      if (this.mirrored) {
+        this.canvasLeft = 100.25 - Math.max(0, 50 * ((240 - this.player.x) / 240));
+      }
+    } else {
+      canvasElement.classList.remove("flippy");
+      this.canvasLeft = this.mirrored ? -100.25 : 0;
+    }
+
+    canvasElement.style.left = `${this.canvasLeft}%`;
+
 
     if (this.instructionsShowing) {
       if (this.cursors.space.isDown) {
@@ -305,7 +338,7 @@ Good luck!`;
       return;
     }
 
-    const runVelocity = 160 * (this.cursors.shift.isDown ? 4 : 1);
+    const runVelocity = this.baseRunVel * (this.cursors.shift.isDown ? 4 : 1);
     
     const targetAlpha = Math.max(0, this.startDark - this.bulbCount * this.bulbLight);
     const currentAlpha = this.overlay.fillAlpha;
@@ -324,12 +357,12 @@ Good luck!`;
     }
 
     if (this.cursors.left.isDown) {
-      this.player.flipX = true;
-      this.player.setVelocityX(runVelocity * -1);
+      this.player.flipX = !this.mirrored;
+      this.player.setVelocityX(this.mirrored ? runVelocity : runVelocity * -1);
       animToPlay = 'left';
     } else if (this.cursors.right.isDown) {
-      this.player.flipX = false;
-      this.player.setVelocityX(runVelocity);
+      this.player.flipX = this.mirrored;
+      this.player.setVelocityX(this.mirrored ? runVelocity * -1 : runVelocity);
       animToPlay = 'right';
     } else {
       this.player.setVelocityX(0);
@@ -340,7 +373,7 @@ Good luck!`;
     this.player.anims.play(animToPlay, true);
 
     if (this.cursors.space.isDown && bodyOnFloor) {
-      this.player.setVelocityY(-330);
+      this.player.setVelocityY(this.baseJumpVel);
     }
   }
 }

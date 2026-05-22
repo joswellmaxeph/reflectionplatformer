@@ -6,8 +6,8 @@ export default class NeighborhoodScene extends LevelScene {
 
     data.skyImgName = "sky"
     data.tileMapName = "wintertest3";
-    data.playerStartX = -100;
-    data.playerStartY = -500;
+    data.playerStartX = 241;
+    data.playerStartY = -10;
     data.bgImgName = "mtn1";
     data.nextSceneThroughDoor = "MccInteriorScene";
     data.instructionsString = `YOU ARE BORN
@@ -32,6 +32,8 @@ Press ${window.CONTROLLER ? "A" : "SPACE"} to begin. Good luck!`;
     const width = this.scale.width;
     const height = this.scale.height;
 
+    this.map.addTilesetImage('groundset', 'tiles');
+
     // const grassfront = this.add.image(0, 5, "GrassFront").setOrigin(0, 0).setScrollFactor(1.125);
     // grassfront.setDepth(5);
 
@@ -42,8 +44,8 @@ Press ${window.CONTROLLER ? "A" : "SPACE"} to begin. Good luck!`;
     // const streetTop = this.add.image(0, 32, "StreetTop").setOrigin(0, 0).setScrollFactor(1);
     // streetTop.setDepth(.2);
 
-    const buildings = this.add.image(0, 0, "wintertest3img").setOrigin(0, 0).setScrollFactor(1);
-    buildings.setDepth(1);
+    // const buildings = this.add.image(0, 0, "wintertest3img").setOrigin(0, 0).setScrollFactor(1);
+    // buildings.setDepth(1);
 
     // const terminalTower = this.add.image(780, 40, "TERMINAL").setOrigin(0, 0).setScrollFactor(.75);
     // terminalTower.setDepth(.02);
