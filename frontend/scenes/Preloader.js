@@ -13,6 +13,8 @@ export default class Preloader extends Phaser.Scene {
 
     this.load.image('tiles', 'public/assets/groundtiles.png');
     this.load.image('tiles2', 'public/assets/groundtilestest.png');
+    this.load.image('tiles3', 'public/assets/groundtilessummer.png');
+    this.load.image('tiles4', 'public/assets/groundtilesfall.png');
     this.load.image('wintertest3img', 'public/assets/wintertest3.png');
     this.load.image('topdecimg', 'public/assets/topdec2.png');
     this.load.image('neighborhooddecor', 'public/assets/bgtest7.png');
@@ -34,6 +36,9 @@ export default class Preloader extends Phaser.Scene {
     this.load.image('HUNTINGTON', 'public/assets/huntington.png');
     this.load.image('KEY', 'public/assets/key.png');
     this.load.image('CSU', 'public/assets/csu.png');
+    this.load.image('Portal', 'public/assets/portal.png');
+    this.load.image('Key', 'public/assets/key2.png');
+    this.load.image('Door', 'public/assets/door.png');
     this.load.tilemapTiledJSON('mcctilemap', 'public/assets/neighborhoodmap2.json');
     this.load.tilemapTiledJSON('wintertest3', 'public/assets/wintertest3.json');
     for (let i = 1; i <= 8; i++) {

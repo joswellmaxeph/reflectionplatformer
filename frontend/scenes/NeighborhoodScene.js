@@ -6,7 +6,7 @@ export default class NeighborhoodScene extends LevelScene {
 
     data.skyImgName = "sky"
     data.tileMapName = "wintertest3";
-    data.playerStartX = 241;
+    data.playerStartX = 259;
     data.playerStartY = -10;
     data.bgImgName = "mtn1";
     data.nextSceneThroughDoor = "MccInteriorScene";

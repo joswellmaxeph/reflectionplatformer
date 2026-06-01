@@ -40,6 +40,10 @@ export default class GameOverScene extends Phaser.Scene {
     this.finalScore = data.currentScore || 0;
     this.lossReason = data.lossReason;
     this.alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    
+    const canvasElement = document.querySelector("canvas");
+    canvasElement.style.left = "0";
+    canvasElement.classList.remove("flippy");
   }
 
   async create() {

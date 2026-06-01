@@ -1,5 +1,64 @@
-import Lightbulb from '../sprites/Lightbulb.js';
-import Monster from '../sprites/Monster.js';
+import Lightbulb from "../sprites/Lightbulb.js";
+import Monster from "../sprites/Monster.js";
+import Portal from "../sprites/Portal.js";
+
+const levelsMap = { Winter: {}, Spring: {}, Summer: {}, Fall: {} };
+window.gamePaused = false;
+window.instructionsShowing = true;
+
+function pauseMenuHandler(event) {
+  if (event.code === "Enter" && !window.gamePaused && !window.instructionsShowing) {
+    window.gamePaused = true;
+    createPauseMenu();
+    window.game.pause();
+    return;
+  }
+
+  if (["ArrowLeft", "ArrowRight"].includes(event.code) && window.gamePaused) {
+    const resumeBtn = document.querySelector(".resume-btn");
+    const restartBtn = document.querySelector(".restart-btn");
+    if (document.activeElement === resumeBtn) {
+      restartBtn.focus();
+    } else {
+      resumeBtn.focus();
+    }
+  }
+
+  if ((["Space", "Enter"].includes(event.code)) && window.gamePaused) {
+    console.log("this?");
+    document.activeElement.click();
+  }
+}
+
+function createPauseMenu() {
+  const overlay = document.createElement("div");
+  overlay.classList.add("overlay");
+  const title = document.createElement("h1");
+  title.innerText = "GAME PAUSED";
+  const resumeBtn = document.createElement("button");
+  resumeBtn.innerText = "Resume";
+  resumeBtn.classList.add("resume-btn");
+  resumeBtn.onclick = () => {
+    window.game.resume();
+    overlay.remove();
+    window.gamePaused = false;
+  };
+  const restartBtn = document.createElement("button");
+  restartBtn.innerText = "Restart";
+  restartBtn.classList.add("restart-btn");
+  restartBtn.onclick = () => {
+    window.location.reload();
+  };
+  overlay.appendChild(title);
+  overlay.appendChild(resumeBtn);
+  overlay.appendChild(restartBtn);
+
+  const overlayContainer = document.querySelector(".overlay-container");
+  overlayContainer.appendChild(overlay);
+  setTimeout(() => resumeBtn.focus(), 0);
+}
+
+document.addEventListener("keydown", pauseMenuHandler);
 
 export default class LevelScene extends Phaser.Scene {
   constructor(levelSceneName, data) {
@@ -11,9 +70,11 @@ export default class LevelScene extends Phaser.Scene {
     this.playerStartX = data.playerStartX || 100;
     this.playerStartY = data.playerStartY || 200;
     this.nextSceneThroughDoor = data.nextSceneThroughDoor || "MccInteriorScene";
-    this.startDark = data.startDark || .5;
-    this.bulbLight = data.bulbLight || .05;
-    this.instructionsString = data.instructionsString || `Welcome to Midtown!
+    this.startDark = data.startDark || 0.5;
+    this.bulbLight = data.bulbLight || 0.05;
+    this.instructionsString =
+      data.instructionsString ||
+      `Welcome to Midtown!
 
 Your goal is to make it to the MCC.
 
@@ -50,34 +111,67 @@ Good luck!`;
 
     this.bulbCount = 0;
 
-    const sky = this.add.image(width * .5, height * .5, this.skyImgName).setScrollFactor(0, 0);
-    sky.setDepth(.001)
+    const sky = this.add
+      .image(width * 0.5, height * 0.5, this.skyImgName)
+      .setScrollFactor(0, 0);
+    sky.setDepth(0.001);
     sky.setScale(2);
 
-    const map = this.make.tilemap({ key: this.tileMapName});
-    const tileset = map.addTilesetImage('groundset', 'tiles');
-    const tileset2 = map.addTilesetImage('groundset', 'tiles2');
-    const mccSideTileset = map.addTilesetImage('MccSideTileset', 'MccSideImg');
-    const hylandClassroomTileset = map.addTilesetImage('HylandClassroomTileset', 'HylandClassroom3');
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels, true, true, false, true);
+    const map = this.make.tilemap({ key: this.tileMapName });
+    const tileset = map.addTilesetImage("groundset", "tiles");
+    const tileset2 = map.addTilesetImage("groundset", "tiles2");
+    const tileset3 = map.addTilesetImage("groundset", "tiles3");
+    const tileset4 = map.addTilesetImage("groundset", "tiles4");
+    const mccSideTileset = map.addTilesetImage("MccSideTileset", "MccSideImg");
+    const hylandClassroomTileset = map.addTilesetImage(
+      "HylandClassroomTileset",
+      "HylandClassroom3",
+    );
+    this.physics.world.setBounds(
+      0,
+      0,
+      map.widthInPixels,
+      map.heightInPixels,
+      true,
+      true,
+      false,
+      true,
+    );
 
-    
-    const bgBasic = this.add.image(0, 0, this.bgImgName).setOrigin(0, 0).setScrollFactor(.84);
-    bgBasic.setDepth(.05);
+    const bgBasic = this.add
+      .image(0, 0, this.bgImgName)
+      .setOrigin(0, 0)
+      .setScrollFactor(0.84);
+    bgBasic.setDepth(0.05);
 
-    const ground = map.createLayer('ground', tileset);
+    const ground = map.createLayer("ground", tileset);
     ground.setDepth(1);
-    const lightbulbsLayer = map.getObjectLayer('lightbulbs')['objects'];
-    const monstersObjectLayer = map.getObjectLayer('MonstersLayer');
-    const monstersLayer = monstersObjectLayer ? monstersObjectLayer['objects'] : [];
-    const doorsLayer = map.getObjectLayer('DoorsLayer')['objects'];
-    const enemyWallsObjectLayer = map.getObjectLayer('EnemyWallsLayer');
-    const enemyWallsLayer = enemyWallsObjectLayer ? enemyWallsObjectLayer['objects'] : [];
+    const lightbulbsLayer = map.getObjectLayer("lightbulbs")["objects"];
+    const monstersObjectLayer = map.getObjectLayer("MonstersLayer");
+    const monstersLayer = monstersObjectLayer
+      ? monstersObjectLayer["objects"]
+      : [];
+    const winterToSpringPortal = map.getObjectLayer("WinterToSpringPortal")[
+      "objects"
+    ];
+    const springToSummerPortal = map.getObjectLayer("SpringToSummerPortal")[
+      "objects"
+    ];
+    const summerToFallPortal =
+      map.getObjectLayer("SummerToFallPortal")["objects"];
+    const finalDoorLayer = map.getObjectLayer("FinalDoor")["objects"];
+    const enemyWallsObjectLayer = map.getObjectLayer("EnemyWallsLayer");
+    const enemyWallsLayer = enemyWallsObjectLayer
+      ? enemyWallsObjectLayer["objects"]
+      : [];
 
-    const mccSideLayer = map.createLayer('MccSideLayer', mccSideTileset);
+    const mccSideLayer = map.createLayer("MccSideLayer", mccSideTileset);
     mccSideLayer.setDepth(1);
     mccSideLayer.y -= 5;
-    const hylandClassroomLayer = map.createLayer('HylandClassroomLayer', hylandClassroomTileset);
+    const hylandClassroomLayer = map.createLayer(
+      "HylandClassroomLayer",
+      hylandClassroomTileset,
+    );
     hylandClassroomLayer && hylandClassroomLayer.setDepth(1);
     ground.setCollisionByProperty({ collides: true });
     for (let i = 0; i < ground.layer.data.length; i++) {
@@ -90,228 +184,415 @@ Good luck!`;
       }
     }
 
-    this.player = this.physics.add.sprite(this.playerStartX, this.playerStartY, this.playerSpriteName);
+    this.player = this.physics.add.sprite(
+      this.playerStartX,
+      this.playerStartY,
+      this.playerSpriteName,
+    );
     this.player.body.setGravityY(300);
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(1.1);
 
-    this.anims.remove('left');
+    this.anims.remove("left");
     this.anims.create({
-      key: 'left',
-      frames: this.anims.generateFrameNumbers(this.playerSpriteName, { start: 0, end: 3 }),
+      key: "left",
+      frames: this.anims.generateFrameNumbers(this.playerSpriteName, {
+        start: 0,
+        end: 3,
+      }),
       frameRate: 8,
-      repeat: -1
+      repeat: -1,
     });
 
-    this.anims.remove('jump');
+    this.anims.remove("jump");
     this.anims.create({
-        key: 'jump',
-        frames: [ { key: this.playerSpriteName, frame: 1 } ],
-        frameRate: 20
+      key: "jump",
+      frames: [{ key: this.playerSpriteName, frame: 1 }],
+      frameRate: 20,
     });
 
-    this.anims.remove('turn');
+    this.anims.remove("turn");
     this.anims.create({
-        key: 'turn',
-        frames: [ { key: this.playerSpriteName, frame: 0 } ],
-        frameRate: 20
+      key: "turn",
+      frames: [{ key: this.playerSpriteName, frame: 0 }],
+      frameRate: 20,
     });
 
-    this.anims.remove('right');
+    this.anims.remove("right");
     this.anims.create({
-        key: 'right',
-        frames: this.anims.generateFrameNumbers(this.playerSpriteName, { start: 0, end: 3 }),
-        frameRate: 8,
-        repeat: -1
+      key: "right",
+      frames: this.anims.generateFrameNumbers(this.playerSpriteName, {
+        start: 0,
+        end: 3,
+      }),
+      frameRate: 8,
+      repeat: -1,
     });
 
-    this.overlay = this.add.rectangle(0, 0, width, height, 0x000000, this.startDark)
+    this.overlay = this.add
+      .rectangle(0, 0, width, height, 0x000000, this.startDark)
       .setOrigin(0, 0)
       .setScrollFactor(0, 0)
-      .setDepth(.9)
+      .setDepth(0.9);
 
-    this.bulbs = this.physics.add.group({immovable: true, allowGravity: false});
-    this.enemyWalls = this.physics.add.group({immovable: true, allowGravity: false});
+    this.bulbs = this.physics.add.group({
+      immovable: true,
+      allowGravity: false,
+    });
+    this.enemyWalls = this.physics.add.group({
+      immovable: true,
+      allowGravity: false,
+    });
+    this.portals = this.physics.add.group({
+      immovable: true,
+      allowGravity: false,
+    });
+    this.portals2 = this.physics.add.group({
+      immovable: true,
+      allowGravity: false,
+    });
     this.monsters = this.physics.add.group();
     this.physics.add.collider(this.monsters, ground);
-    
-    this.anims.remove('volt');
+
+    this.anims.remove("volt");
     this.anims.create({
-      key: 'volt',
-      frames: this.anims.generateFrameNumbers('lightbulb', { start: 0, end: 7 }),
+      key: "volt",
+      frames: this.anims.generateFrameNumbers("lightbulb", {
+        start: 0,
+        end: 7,
+      }),
       frameRate: 2,
-      repeat: -1
-    });
-    
-    this.anims.remove('move');
-    this.anims.create({
-      key: 'move',
-      frames: this.anims.generateFrameNumbers('MonsterImg', { start: 0, end: 1 }),
-      frameRate: 5,
-      repeat: -1
+      repeat: -1,
     });
 
-    this.anims.remove('fall');
+    this.anims.remove("move");
     this.anims.create({
-      key: 'fall',
-      frames: this.anims.generateFrameNumbers('MonsterImg', { frames: [0, 4, 0, 4, 0, 4, 3, 3, 3, 3, 3, 3] }),
+      key: "move",
+      frames: this.anims.generateFrameNumbers("MonsterImg", {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+
+    this.anims.remove("fall");
+    this.anims.create({
+      key: "fall",
+      frames: this.anims.generateFrameNumbers("MonsterImg", {
+        frames: [0, 4, 0, 4, 0, 4, 3, 3, 3, 3, 3, 3],
+      }),
       frameRate: 12,
     });
 
-    monstersLayer.forEach(monsterObj => {
-      const {x, y} = monsterObj;
-      const newMonster = new Monster({scene:this,x,y});
+    monstersLayer.forEach((monsterObj) => {
+      const { x, y } = monsterObj;
+      const newMonster = new Monster({ scene: this, x, y });
       this.monsters.add(newMonster);
     });
 
-    lightbulbsLayer.forEach(lightbulbObj => {
-      const {x, y} = lightbulbObj;
-      this.bulbs.add(new Lightbulb({scene:this,x,y}));
+    lightbulbsLayer.forEach((lightbulbObj) => {
+      const { x, y } = lightbulbObj;
+      this.bulbs.add(new Lightbulb({ scene: this, x, y }));
     });
 
-    enemyWallsLayer.forEach(enemyWallObj => {
-      const {x, y, width, height} = enemyWallObj;
-      const wall = this.add.rectangle(x, y, width, height, 0x000000, 0).setOrigin(0, 0);
+    enemyWallsLayer.forEach((enemyWallObj) => {
+      const { x, y, width, height } = enemyWallObj;
+      const wall = this.add
+        .rectangle(x, y, width, height, 0x000000, 0)
+        .setOrigin(0, 0);
       this.enemyWalls.add(wall);
     });
 
-    doorsLayer.forEach(doorObj => {
-      const {x, y, width, height, properties} = doorObj;
-      const door = this.add.rectangle(x + width / 2, y + height / 2, width, height, 0x000000, 0).setOrigin(.5, .5);
-      door.setDepth(2)
-      this.physics.add.existing(door, true);
-      
-      this.physics.add.overlap(this.player, door, () => {
-        if (this.player.x >= 2032) {
-          this.map.addTilesetImage('groundset', 'tiles2');
-          this.mirrored = true;
-          this.baseJumpVel = -400;
-        }
-      });
+    const finalDoor = finalDoorLayer[0];
+    const door = new Portal({
+      scene: this,
+      x: finalDoor.x,
+      y: finalDoor.y+finalDoor.height/2,
+      img: "Door"
+    });
+
+    this.portals.add(door);
+    this.physics.add.existing(door, false);
+    this.physics.add.overlap(this.player, door, () => {
+      // Handle player reaching the door
+      if (this.currentLevel !== "Fall") return;
+        if (this.movingOn) return;
+        this.timeTicking = false;
+        this.currentScore = this.currentScore + this.timeLimit;
+        this.movingOn = true;
+        // door.setFillStyle(0x000000, 1);
+        this.player.setVelocityX(Phaser.Math.Linear(160, 0, .7));
+        this.player.anims.play('turn');
+        this.player.setAlpha(Phaser.Math.Linear(1, 0, .5));
+        
+        this.cameras.main.fadeOut(1000, 0, 0, 0);
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+
+          this.scene.start("GameOverScene", {playerSpriteName: this.playerSpriteName, currentScore: this.currentScore, win: true});
+        });
     });
 
     this.physics.add.collider(this.player, ground);
     this.bulbAmount = 100;
-    this.bulbCollider = this.physics.add.collider(this.player, this.bulbs, (p, b) => { b.destroy(); this.bulbCount++; this.currentScore += this.bulbAmount; });
+    this.bulbCollider = this.physics.add.collider(
+      this.player,
+      this.bulbs,
+      (p, b) => {
+        b.destroy();
+        this.bulbCount++;
+        this.currentScore += this.bulbAmount;
+      },
+    );
     this.bulbCollider.overlapOnly = true;
 
     this.physics.add.collider(this.enemyWalls, this.monsters);
 
-    this.monsterCollider = this.physics.add.collider(this.player, this.monsters, (p, m) => {
-      if (p.y < (m.y-32)) {
-        this.currentScore += 200;
-        m.fall();
-        p.setVelocityY(-200);
-        m.on('animationcomplete', () => {
-          m.destroy();
-        });
-      } else {
-        if (this.movingOn) return;
-        this.movingOn = true;
-        this.timeTicking = false;
-        this.player.body.enable = false;
-        this.player.anims.play('turn');
-        
-        this.cameras.main.fadeOut(1000, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.start("GameOverScene", {playerSpriteName: this.playerSpriteName, currentScore: this.currentScore, win: false, lossReason: "a monster got you!"});
-        });
-      }
-    });
+    this.monsterCollider = this.physics.add.collider(
+      this.player,
+      this.monsters,
+      (p, m) => {
+        if (p.y < m.y - 32) {
+          this.currentScore += 200;
+          m.fall();
+          p.setVelocityY(-200);
+          m.on("animationcomplete", () => {
+            m.destroy();
+          });
+        } else {
+          if (this.movingOn) return;
+          this.movingOn = true;
+          this.timeTicking = false;
+          this.player.body.enable = false;
+          this.player.anims.play("turn");
+
+          this.cameras.main.fadeOut(1000, 0, 0, 0);
+          this.cameras.main.once("camerafadeoutcomplete", () => {
+            this.scene.start("GameOverScene", {
+              playerSpriteName: this.playerSpriteName,
+              currentScore: this.currentScore,
+              win: false,
+              lossReason: "a monster got you!",
+            });
+          });
+        }
+      },
+    );
 
     if (window.CRT) {
-      this.scoreText = this.add.bitmapText(50, 20, "pixelfontblack", "", 12).setOrigin(0, 0).setScrollFactor(0, 0);
-      this.timeText = this.add.bitmapText(width - 50, 20, "pixelfontblack", "", 12).setOrigin(1, 0).setScrollFactor(0, 0);
+      this.scoreText = this.add
+        .bitmapText(50, 20, "pixelfontblack", "", 12)
+        .setOrigin(0, 0)
+        .setScrollFactor(0, 0);
+      this.timeText = this.add
+        .bitmapText(width - 50, 20, "pixelfontblack", "", 12)
+        .setOrigin(1, 0)
+        .setScrollFactor(0, 0);
     } else {
-      const topBarRect = this.add.rectangle(0, 0, width, 20, 0x000000, 1).setOrigin(0, 0).setScrollFactor(0, 0);
+      const topBarRect = this.add
+        .rectangle(0, 0, width, 20, 0x000000, 1)
+        .setOrigin(0, 0)
+        .setScrollFactor(0, 0);
       topBarRect.setDepth(2);
-      this.scoreText = this.add.bitmapText(10, 5, "pixelfont", "", 12).setOrigin(0, 0).setScrollFactor(0, 0);
-      this.timeText = this.add.bitmapText(width - 10, 5, "pixelfont", "", 12).setOrigin(1, 0).setScrollFactor(0, 0);
+      this.scoreText = this.add
+        .bitmapText(10, 5, "pixelfont", "", 12)
+        .setOrigin(0, 0)
+        .setScrollFactor(0, 0);
+      this.timeText = this.add
+        .bitmapText(width - 10, 5, "pixelfont", "", 12)
+        .setOrigin(1, 0)
+        .setScrollFactor(0, 0);
     }
-    
+
     this.scoreText.setDepth(3);
     this.timeText.setDepth(3);
-    this.timeLimit = 600;
+    this.timeLimit = 6000;
     this.timeTicking = true;
-    
+
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+    this.wasd = this.input.keyboard.addKeys("W,A,S,D");
 
     this.cameras.main.startFollow(this.player);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.fadeIn(500, 0, 0, 0);
 
     this.timer = this.time.addEvent({
-      delay: 100, 
+      delay: 100,
       loop: true,
       callback: () => {
-        if (this.timeTicking && !this.instructionsShowing) {
+        if (this.timeTicking && !window.instructionsShowing) {
           this.timeLimit--;
         }
-        
-        this.timeText.text = `00:${(this.timeLimit / 10).toFixed(1).padStart(4, '0')}`;
+
+        this.timeText.text = `00:${(this.timeLimit / 10).toFixed(1).padStart(4, "0")}`;
 
         if (this.timeLimit === 0) {
           if (this.movingOn) return;
           this.movingOn = true;
           this.timeTicking = false;
           this.player.setVelocityX(0);
-          this.player.anims.play('turn');
-          
+          this.player.anims.play("turn");
+
           this.cameras.main.fadeOut(1000, 0, 0, 0);
-          this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.start("GameOverScene", {playerSpriteName: this.playerSpriteName, currentScore: this.currentScore, win: false, lossReason: "you ran out of time!"});
+          this.cameras.main.once("camerafadeoutcomplete", () => {
+            this.scene.start("GameOverScene", {
+              playerSpriteName: this.playerSpriteName,
+              currentScore: this.currentScore,
+              win: false,
+              lossReason: "you ran out of time!",
+            });
           });
         }
-      }
+      },
     });
-
-    this.instructionsShowing = !window.tryingAgain;
-    if (!this.instructionsShowing) return;
 
     const instructionsEdge = 50;
 
-    this.instructionsRectBorder = this.add.rectangle(instructionsEdge, instructionsEdge, width-(instructionsEdge*2), height-(instructionsEdge*2), 0xFFFFFF, 1).setOrigin(0, 0).setScrollFactor(0, 0);
+    if (!window.instructionsShowing) return;
+
+    this.instructionsRectBorder = this.add
+      .rectangle(
+        instructionsEdge,
+        instructionsEdge,
+        width - instructionsEdge * 2,
+        height - instructionsEdge * 2,
+        0xffffff,
+        1,
+      )
+      .setOrigin(0, 0)
+      .setScrollFactor(0, 0);
     this.instructionsRectBorder.setDepth(4);
 
-    this.instructionsRect = this.add.rectangle(instructionsEdge+5, instructionsEdge+5, width-((instructionsEdge+5)*2), height-((instructionsEdge+5)*2), 0x000000, 1).setOrigin(0, 0).setScrollFactor(0, 0);
+    this.instructionsRect = this.add
+      .rectangle(
+        instructionsEdge + 5,
+        instructionsEdge + 5,
+        width - (instructionsEdge + 5) * 2,
+        height - (instructionsEdge + 5) * 2,
+        0x000000,
+        1,
+      )
+      .setOrigin(0, 0)
+      .setScrollFactor(0, 0);
     this.instructionsRect.setDepth(4);
 
-    this.instructionsText = this.add.bitmapText(width* .5, height * .5, "pixelfont", this.instructionsString, 12).setOrigin(.5, .5).setScrollFactor(0, 0);
+    this.instructionsText = this.add
+      .bitmapText(
+        width * 0.5,
+        height * 0.5,
+        "pixelfont",
+        this.instructionsString,
+        12,
+      )
+      .setOrigin(0.5, 0.5)
+      .setScrollFactor(0, 0);
     this.instructionsText.setDepth(4);
-    this.instructionsText.setScale(-1, 1);
 
-    this.aBtn = this.add.image(width * .87, height * .78 + 20, 'ABtn').setOrigin(1, 1).setScrollFactor(0, 0);
+    this.aBtn = this.add
+      .image(width * 0.87, height * 0.78 + 20, "ABtn")
+      .setOrigin(1, 1)
+      .setScrollFactor(0, 0);
     this.aBtn.setAlpha(window.CONTROLLER ? 1 : 0);
     this.aBtn.setDepth(4);
 
     this.map = map;
+
+    levelsMap["Winter"].mirrored = false;
+    levelsMap["Winter"].groundsetTiles = "tiles";
+    levelsMap["Winter"].portal = winterToSpringPortal[0];
+    levelsMap["Winter"].portalSide = "right";
+    levelsMap["Winter"].nextLevel = "Spring";
+
+    levelsMap["Spring"].mirrored = true;
+    levelsMap["Spring"].groundsetTiles = "tiles2";
+    levelsMap["Spring"].portal = springToSummerPortal[0];
+    levelsMap["Spring"].onPortal = () => {
+      this.baseJumpVel = -400;
+    };
+    levelsMap["Spring"].portalSide = "left";
+    levelsMap["Spring"].nextLevel = "Summer";
+
+    levelsMap["Summer"].mirrored = false;
+    levelsMap["Summer"].groundsetTiles = "tiles3";
+    levelsMap["Summer"].portal = summerToFallPortal[0];
+    levelsMap["Summer"].onPortal = () => {
+      this.baseRunVel = 100;
+    };
+    levelsMap["Summer"].portalSide = "right";
+    levelsMap["Summer"].nextLevel = "Fall";
+    levelsMap["Summer"].portalImage = "Key";
+
+    levelsMap["Fall"].mirrored = false;
+    levelsMap["Fall"].groundsetTiles = "tiles4";
+    levelsMap["Fall"].portal = undefined;
+
+    this.loadLevel("Winter");
+  }
+
+  loadLevel(name) {
+    this.currentLevel = name;
+    this.mirrored = levelsMap[name].mirrored;
+    this.map.addTilesetImage("groundset", levelsMap[name].groundsetTiles);
+
+    const portalObj = levelsMap[name].portal;
+    if (!portalObj) return;
+    const img = levelsMap[name].portalImage;
+    const portal = new Portal({
+      scene: this,
+      x: img ? portalObj.x - portalObj.width : portalObj.x,
+      y: portalObj.y + portalObj.height / 2,
+      img: img || "Portal"
+    });
+    this.portals.add(portal);
+    this.physics.add.existing(portal, true);
+    this.physics.add.overlap(this.player, portal, () => {
+      if (levelsMap[name].portalSide === "right" && this.player.x < portal.x)
+        return;
+      if (
+        levelsMap[name].portalSide === "left" &&
+        this.player.x > portal.x + 16
+      )
+        return;
+      portal.destroy();
+
+      if (levelsMap[name].onPortal) {
+        levelsMap[name].onPortal();
+      }
+
+      this.loadLevel(levelsMap[name].nextLevel);
+    });
   }
 
   update() {
+
     this.scoreText.setText(`SCORE: ${this.currentScore}`);
 
-    const canvasElement = document.querySelector('canvas');
+    const canvasElement = document.querySelector("canvas");
 
     if (this.mirrored && this.wasd.A.isDown) {
-      this.map.addTilesetImage('groundset', 'tiles');
+      this.map.addTilesetImage("groundset", "tiles");
       this.mirrored = false;
       this.baseRunVel = 200;
     }
 
     if (this.player.x >= 1792) {
       canvasElement.classList.remove("flippy");
-      this.canvasLeft = Math.min(0, -50 * ((1792 - this.player.x) / (1792 - 2032)));
+      this.canvasLeft = Math.min(
+        0,
+        -50.25 * ((1792 - this.player.x) / (1792 - 2032)),
+      );
 
       if (this.mirrored) {
-        this.canvasLeft = -100.25 + Math.max(0, 50 * ((1792 - this.player.x) / (1792 - 2032)));
+        this.canvasLeft =
+          -100.25 + Math.max(0, 50 * ((1792 - this.player.x) / (1792 - 2032)));
       }
-    } else if (this.player.x <= 240) {
+    } else if (this.player.x <= 240 + this.player.width / 2) {
+      const playerEdge = this.player.x - this.player.width / 2;
       canvasElement.classList.add("flippy");
-      this.canvasLeft = 50 * ((240 - this.player.x) / 240);
+      this.canvasLeft = 50.25 * ((240 - playerEdge) / 240);
 
       if (this.mirrored) {
-        this.canvasLeft = 100.25 - Math.max(0, 50 * ((240 - this.player.x) / 240));
+        this.canvasLeft = 100.25 - Math.max(0, 50 * ((240 - playerEdge) / 240));
       }
     } else {
       canvasElement.classList.remove("flippy");
@@ -320,15 +601,14 @@ Good luck!`;
 
     canvasElement.style.left = `${this.canvasLeft}%`;
 
-
-    if (this.instructionsShowing) {
+    if (window.instructionsShowing) {
       if (this.cursors.space.isDown) {
         this.spaceDown = true;
       }
 
       if (this.spaceDown == true && this.cursors.space.isUp) {
         this.spaceDown = false;
-        this.instructionsShowing = false;
+        window.instructionsShowing = false;
         this.instructionsRectBorder.destroy();
         this.instructionsRect.destroy();
         this.instructionsText.destroy();
@@ -339,16 +619,23 @@ Good luck!`;
     }
 
     const runVelocity = this.baseRunVel * (this.cursors.shift.isDown ? 4 : 1);
-    
-    const targetAlpha = Math.max(0, this.startDark - this.bulbCount * this.bulbLight);
+    const jumpVelocity = this.baseJumpVel * (this.cursors.shift.isDown ? 1.5 : 1);
+
+    const targetAlpha = Math.max(
+      0,
+      this.startDark - this.bulbCount * this.bulbLight,
+    );
     const currentAlpha = this.overlay.fillAlpha;
-    this.overlay.setFillStyle(0x000000, Phaser.Math.Linear(currentAlpha, targetAlpha, 0.1));
+    this.overlay.setFillStyle(
+      0x000000,
+      Phaser.Math.Linear(currentAlpha, targetAlpha, 0.1),
+    );
 
     const bodyOnFloor = this.player.body.onFloor();
     let animToPlay;
-    
+
     // update monsters
-    this.monsters.children.iterate(monster => {
+    this.monsters.children.iterate((monster) => {
       monster.update();
     });
 
@@ -359,21 +646,21 @@ Good luck!`;
     if (this.cursors.left.isDown) {
       this.player.flipX = !this.mirrored;
       this.player.setVelocityX(this.mirrored ? runVelocity : runVelocity * -1);
-      animToPlay = 'left';
+      animToPlay = "left";
     } else if (this.cursors.right.isDown) {
       this.player.flipX = this.mirrored;
       this.player.setVelocityX(this.mirrored ? runVelocity * -1 : runVelocity);
-      animToPlay = 'right';
+      animToPlay = "right";
     } else {
       this.player.setVelocityX(0);
-      animToPlay = 'turn'
+      animToPlay = "turn";
     }
 
-    animToPlay = bodyOnFloor ? animToPlay : 'jump';
+    animToPlay = bodyOnFloor ? animToPlay : "jump";
     this.player.anims.play(animToPlay, true);
 
     if (this.cursors.space.isDown && bodyOnFloor) {
-      this.player.setVelocityY(this.baseJumpVel);
+      this.player.setVelocityY(jumpVelocity);
     }
   }
 }
