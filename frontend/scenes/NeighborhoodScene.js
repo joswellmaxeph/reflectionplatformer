@@ -10,25 +10,15 @@ export default class NeighborhoodScene extends LevelScene {
     data.playerStartY = -10;
     data.bgImgName = "mtn1";
     data.nextSceneThroughDoor = "MccInteriorScene";
-    data.instructionsString = `YOU ARE BORN
-
-    IN THE WINTER.
-
-
-
-Use LEFT and RIGHT to move.
-
-Press ${window.CONTROLLER ? "A" : "SPACE"} to jump.
-
-Watch the timer.
-
-Press ${window.CONTROLLER ? "A" : "SPACE"} to begin. Good luck!`;
+    data.instructionsString = ` . . . YOU ARE BORN
+    IN THE WINTER . . . `;
 
     super("NeighborhoodScene", data);
   }
 
   create() {
     super.create();
+    window.scene = "MainScene";
     const width = this.scale.width;
     const height = this.scale.height;
 

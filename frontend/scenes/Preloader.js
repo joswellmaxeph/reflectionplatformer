@@ -39,6 +39,7 @@ export default class Preloader extends Phaser.Scene {
     this.load.image('Portal', 'public/assets/portal.png');
     this.load.image('Key', 'public/assets/key2.png');
     this.load.image('Door', 'public/assets/door.png');
+    this.load.image('hourglass', 'public/assets/hourglass.png');
     this.load.tilemapTiledJSON('mcctilemap', 'public/assets/neighborhoodmap2.json');
     this.load.tilemapTiledJSON('wintertest3', 'public/assets/wintertest3.json');
     for (let i = 1; i <= 8; i++) {
@@ -60,6 +61,6 @@ export default class Preloader extends Phaser.Scene {
   }
 
   create() {
-    this.scene.start("NeighborhoodScene");
+    this.scene.start("TitleSplash");
   }
 }

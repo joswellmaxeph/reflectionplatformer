@@ -1,30 +1,20 @@
-async function getHighScores() {
-  try {
-    const response = await fetch('/high-scores');
-    const json = await response.json();
-    return json;
-  } catch (error) {
-    alert(error);
+function getHighScores() {
+  const highScoresString = localStorage.getItem("highScores");
+  if (highScoresString) {
+    return JSON.parse(highScoresString);
+  } else {
+    return [];
   }
 }
 
-const saveNewHighScore = async (newScore) => {
-  try {
-    const response = await fetch('/high-scores', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(newScore)
-    });
-    const json = await response.json();
-  } catch (error) {
-    alert(error);
-  }
+function saveNewHighScore(newScore) {
+  const currentHighScores = getHighScores();
+  currentHighScores.push(newScore);
+  localStorage.setItem("highScores", JSON.stringify(currentHighScores));
 }
 
-const getSortedHighScoresWithNew = async (newScore) => {
-  const highScores = await getHighScores();
+function getSortedHighScoresWithNew(newScore) {
+  const highScores = getHighScores();
   highScores.push({ ...newScore, current: true });
   highScores.sort((a, b) => a.score === b.score ? a.current ? -1 : 1 : b.score - a.score);
   return highScores;
@@ -33,6 +23,7 @@ const getSortedHighScoresWithNew = async (newScore) => {
 export default class GameOverScene extends Phaser.Scene {
   constructor() {
     super("GameOverScene");
+    window.scene = "GameOverScene";
   }
   
   init (data) {
@@ -53,10 +44,10 @@ export default class GameOverScene extends Phaser.Scene {
     this.movingOn = false;
     this.doneLoading = false;
     this.initials = ["A", "A", "A"];
-    const highScores = await getSortedHighScoresWithNew({ score: this.finalScore, initials: this.initials.join("") });
+    const highScores = getSortedHighScoresWithNew({ score: this.finalScore, initials: this.initials.join("") });
     const saveMsg =  `Enter your initials and press ${window.CONTROLLER ? "START" : "SPACE"} to save your score.`
 
-    const bannerText = this.add.bitmapText(width * .5, height * .1, 'pixelfont', "YOU WON!", 20).setOrigin(0.5);
+    const bannerText = this.add.bitmapText(width * .5, height * .1, 'pixelfont', "THE END", 20).setOrigin(0.5);
     const subtitleText = this.add.bitmapText(width * .5, height * .15, 'pixelfont', `final score: ${this.finalScore}`, 15).setOrigin(0.5);
     const instructionsText = this.add.bitmapText(width * .5, height * (this.win ? .2 : .25), 'pixelfont', saveMsg, 10).setOrigin(0.5);
 
@@ -73,33 +64,20 @@ export default class GameOverScene extends Phaser.Scene {
         saveNewHighScore({ score: this.finalScore, initials: this.initials.join("") });
       }
 
-      this.cameras.main.fadeOut(1000, 0, 0, 0);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start("TitleSplash");
-      });
+      window.location.reload();
     });
 
     this.spaceA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
 
     if (!this.win) {
       bannerText.setText("GAME OVER");
       subtitleText.setText(this.lossReason);
       instructionsText.setText(`Press ${window.CONTROLLER ? "START" : "ENTER"} to return to the title screen.`);
       
-      const instructionsText2 = this.add.bitmapText(width * .5, height * .3, 'pixelfont', saveMsg, 10).setOrigin(0.5);
-      instructionsText2.setText(`Press ${window.CONTROLLER ? "A" : "SPACE"} to try again.`);
       this.cameras.main.fadeIn(500, 0, 0, 0);
 
       this.spaceA.on('down', () => {
-        if (this.movingOn) return;
-        this.movingOn = true;
-  
-        window.tryingAgain = true;
-        this.cameras.main.fadeOut(1000, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.start("NeighborhoodScene");
-        });
+        window.location.reload();
       });
       return;
     }
@@ -162,10 +140,7 @@ export default class GameOverScene extends Phaser.Scene {
         saveNewHighScore({ score: this.finalScore, initials: this.initials.join("") });
       }
 
-      this.cameras.main.fadeOut(1000, 0, 0, 0);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start("TitleSplash");
-      });
+      window.location.reload();
     })
 
     this.leftKey.on('down', () => {

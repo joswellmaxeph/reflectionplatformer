@@ -1,8 +1,13 @@
-☐ add pause menu with restart option ("would you like to restart? y/n" start->start closes, start->a restarts, maybe start->right->a closes)
-☐ Fix db
+✔ Fix db @done(26-06-01 16:53)
+✔ build basic tilemap with portals / door @done(26-06-01 16:54)
+✔ build tilemaps with enemies and coins @done(26-06-02 13:12)
+✔ make pause menu look nice @done(26-06-02 13:29)
+✔ Fade instructions automatically, allow movement during... @done(26-06-02 14:23)
+✔ store scores in localstorage @done(26-06-02 16:45)
+✔ make game over actually work @done(26-06-02 16:45)
 ☐ Title screen
-☐ Fade instructions automatically, allow movement during...
-☐ build tilemaps including coins / enemies / key / door
+☐ clean up code
+☐ create different sprites for different ages / seasons
 ☐ Actually make styled tiles
 ☐ Get CRT TV
 ☐ Test on CRT TV

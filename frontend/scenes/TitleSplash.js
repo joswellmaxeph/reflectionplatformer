@@ -1,3 +1,23 @@
+function getHighScorerMessage() {
+  const highScoresString = localStorage.getItem("highScores");
+  let highScores = [];
+  if (highScoresString) {
+    highScores = JSON.parse(highScoresString);
+  } else {
+    return "";
+  }
+  
+  if (highScores.length === 0) {
+    return "";
+  }
+
+  highScores.sort((a, b) => b.score - a.score);
+  const topScore = highScores[0].score;
+  const topScorers = highScores.filter(score => score.score === topScore);
+  const names = topScorers.map(scorer => scorer.initials).join(", ");
+  return `high score: ${topScore} (${names})`;
+}
+
 export default class TitleSplash extends Phaser.Scene {
   constructor() {
     super("TitleSplash");
@@ -18,7 +38,10 @@ export default class TitleSplash extends Phaser.Scene {
 
     const startMsg = `PRESS ${window.CONTROLLER ? "START" : "SPACE"}`;
 
-    const pressStartText = this.add.bitmapText(width * .5, height * .75, 'pixelfontyellow', startMsg, 24).setOrigin(0.5);
+    const pressStartText = this.add.bitmapText(width * .5, height * .75, 'pixelfontyellow', startMsg, 48).setOrigin(0.5);
+
+    const highScorerMsg = getHighScorerMessage();
+    const highScoreText = this.add.bitmapText(width * .5, height * .85, 'pixelfont', highScorerMsg, 24).setOrigin(0.5);
 
     const blinkEvent = this.time.addEvent({
       delay: 500,

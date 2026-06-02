@@ -1,17 +1,70 @@
 import Lightbulb from "../sprites/Lightbulb.js";
 import Monster from "../sprites/Monster.js";
 import Portal from "../sprites/Portal.js";
+import Message from "../sprites/Message.js";
 
-const levelsMap = { Winter: {}, Spring: {}, Summer: {}, Fall: {} };
+const levelsMap = {
+  Winter: {
+    mirrored: false,
+    groundsetTiles: "tiles",
+    portal: "WinterToSpringPortal",
+    portalSide: "right",
+    nextLevel: "Spring",
+  },
+  Spring: {
+    sceneMsg: ` . . . YOU FIND TIME
+    IN THE SPRING . . . `,
+    mirrored: true,
+    groundsetTiles: "tiles2",
+    portal: "SpringToSummerPortal",
+    onPortal: (scene) => {
+      scene.baseJumpVel = -400;
+    },
+    portalSide: "left",
+    nextLevel: "Summer",
+    coins: "SpringCoins",
+  },
+  Summer: {
+    sceneMsg: ` . . . YOU ARE HAUNTED
+    IN THE SUMMER . . . `,
+    mirrored: false,
+    groundsetTiles: "tiles3",
+    portal: "SummerToFallPortal",
+    onPortal: (scene) => {
+      scene.baseRunVel = 100;
+    },
+    portalSide: "right",
+    portalImage: "Key",
+    nextLevel: "Fall",
+    coins: "SummerCoins",
+    monsters: "SummerMonsters",
+  },
+  Fall: {
+    sceneMsg: ` . . . YOU MUST RETURN
+    IN THE FALL . . . `,
+    mirrored: false,
+    groundsetTiles: "tiles4",
+    portal: undefined,
+    monsters: "FallMonsters",
+  },
+};
+
 window.gamePaused = false;
 window.instructionsShowing = true;
 
 function pauseMenuHandler(event) {
-  if (event.code === "Enter" && !window.gamePaused && !window.instructionsShowing) {
-    window.gamePaused = true;
-    createPauseMenu();
-    window.game.pause();
-    return;
+  console.log("hye");
+  if (window.scene !== "MainScene") return;
+  if (event.code === "Enter") {
+    if (!window.gamePaused && !window.instructionsShowing) {
+      window.gamePaused = true;
+      createPauseMenu();
+      window.game.pause();
+      return;
+    } else if (window.gamePaused) {
+      const resumeBtn = document.querySelector(".resume-btn");
+      resumeBtn.click();
+    }
   }
 
   if (["ArrowLeft", "ArrowRight"].includes(event.code) && window.gamePaused) {
@@ -24,13 +77,14 @@ function pauseMenuHandler(event) {
     }
   }
 
-  if ((["Space", "Enter"].includes(event.code)) && window.gamePaused) {
-    console.log("this?");
+  if (event.code === "Space" && window.gamePaused) {
     document.activeElement.click();
   }
 }
 
 function createPauseMenu() {
+  const overlayContainer = document.querySelector(".overlay-container");
+  
   const overlay = document.createElement("div");
   overlay.classList.add("overlay");
   const title = document.createElement("h1");
@@ -41,6 +95,7 @@ function createPauseMenu() {
   resumeBtn.onclick = () => {
     window.game.resume();
     overlay.remove();
+    overlayContainer.style.background = "transparent";
     window.gamePaused = false;
   };
   const restartBtn = document.createElement("button");
@@ -53,12 +108,23 @@ function createPauseMenu() {
   overlay.appendChild(resumeBtn);
   overlay.appendChild(restartBtn);
 
-  const overlayContainer = document.querySelector(".overlay-container");
+  overlayContainer.style.background = "#40404f40";
   overlayContainer.appendChild(overlay);
   setTimeout(() => resumeBtn.focus(), 0);
 }
 
 document.addEventListener("keydown", pauseMenuHandler);
+
+function getTimeString(timeLimit) {
+  const minutes = Math.floor(timeLimit / 600);
+  const seconds = (timeLimit % 600) / 10;
+  let secondsString = seconds.toString();
+  if (!secondsString.includes(".")) {
+    secondsString = `${secondsString}.0`;
+  }
+  secondsString = secondsString.padStart(4, "0");
+  return `${minutes}:${secondsString}`;
+}
 
 export default class LevelScene extends Phaser.Scene {
   constructor(levelSceneName, data) {
@@ -109,6 +175,8 @@ Good luck!`;
     this.baseRunVel = 160;
     this.baseJumpVel = -330;
 
+    this.tmpSpeedBoost = 1;
+
     this.bulbCount = 0;
 
     const sky = this.add
@@ -146,19 +214,6 @@ Good luck!`;
 
     const ground = map.createLayer("ground", tileset);
     ground.setDepth(1);
-    const lightbulbsLayer = map.getObjectLayer("lightbulbs")["objects"];
-    const monstersObjectLayer = map.getObjectLayer("MonstersLayer");
-    const monstersLayer = monstersObjectLayer
-      ? monstersObjectLayer["objects"]
-      : [];
-    const winterToSpringPortal = map.getObjectLayer("WinterToSpringPortal")[
-      "objects"
-    ];
-    const springToSummerPortal = map.getObjectLayer("SpringToSummerPortal")[
-      "objects"
-    ];
-    const summerToFallPortal =
-      map.getObjectLayer("SummerToFallPortal")["objects"];
     const finalDoorLayer = map.getObjectLayer("FinalDoor")["objects"];
     const enemyWallsObjectLayer = map.getObjectLayer("EnemyWallsLayer");
     const enemyWallsLayer = enemyWallsObjectLayer
@@ -229,11 +284,11 @@ Good luck!`;
       repeat: -1,
     });
 
-    this.overlay = this.add
-      .rectangle(0, 0, width, height, 0x000000, this.startDark)
-      .setOrigin(0, 0)
-      .setScrollFactor(0, 0)
-      .setDepth(0.9);
+    // this.overlay = this.add
+    //   .rectangle(0, 0, width, height, 0x000000, this.startDark)
+    //   .setOrigin(0, 0)
+    //   .setScrollFactor(0, 0)
+    //   .setDepth(0.9);
 
     this.bulbs = this.physics.add.group({
       immovable: true,
@@ -254,16 +309,16 @@ Good luck!`;
     this.monsters = this.physics.add.group();
     this.physics.add.collider(this.monsters, ground);
 
-    this.anims.remove("volt");
-    this.anims.create({
-      key: "volt",
-      frames: this.anims.generateFrameNumbers("lightbulb", {
-        start: 0,
-        end: 7,
-      }),
-      frameRate: 2,
-      repeat: -1,
-    });
+    // this.anims.remove("volt");
+    // this.anims.create({
+    //   key: "volt",
+    //   frames: this.anims.generateFrameNumbers("lightbulb", {
+    //     start: 0,
+    //     end: 7,
+    //   }),
+    //   frameRate: 2,
+    //   repeat: -1,
+    // });
 
     this.anims.remove("move");
     this.anims.create({
@@ -285,17 +340,6 @@ Good luck!`;
       frameRate: 12,
     });
 
-    monstersLayer.forEach((monsterObj) => {
-      const { x, y } = monsterObj;
-      const newMonster = new Monster({ scene: this, x, y });
-      this.monsters.add(newMonster);
-    });
-
-    lightbulbsLayer.forEach((lightbulbObj) => {
-      const { x, y } = lightbulbObj;
-      this.bulbs.add(new Lightbulb({ scene: this, x, y }));
-    });
-
     enemyWallsLayer.forEach((enemyWallObj) => {
       const { x, y, width, height } = enemyWallObj;
       const wall = this.add
@@ -308,29 +352,49 @@ Good luck!`;
     const door = new Portal({
       scene: this,
       x: finalDoor.x,
-      y: finalDoor.y+finalDoor.height/2,
-      img: "Door"
+      y: finalDoor.y + finalDoor.height / 2,
+      img: "Door",
     });
+
+    this.doorMsg = new Message(
+      this,
+      20,
+      200,
+      `You must have the key to enter!
+
+(press START to restart)      `,
+      320,
+      80,
+    );
+
+    this.doorMsg.hide();
 
     this.portals.add(door);
     this.physics.add.existing(door, false);
     this.physics.add.overlap(this.player, door, () => {
       // Handle player reaching the door
-      if (this.currentLevel !== "Fall") return;
-        if (this.movingOn) return;
-        this.timeTicking = false;
-        this.currentScore = this.currentScore + this.timeLimit;
-        this.movingOn = true;
-        // door.setFillStyle(0x000000, 1);
-        this.player.setVelocityX(Phaser.Math.Linear(160, 0, .7));
-        this.player.anims.play('turn');
-        this.player.setAlpha(Phaser.Math.Linear(1, 0, .5));
-        
-        this.cameras.main.fadeOut(1000, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => {
+      if (this.currentLevel !== "Fall") {
+        this.overlapFinalDoor = true;
+        return;
+      }
+      this.doorMsg.hide();
+      if (this.movingOn) return;
+      this.timeTicking = false;
+      this.currentScore = this.currentScore + this.timeLimit;
+      this.movingOn = true;
+      // door.setFillStyle(0x000000, 1);
+      this.player.setVelocityX(Phaser.Math.Linear(160, 0, 0.7));
+      this.player.anims.play("turn");
+      this.player.setAlpha(Phaser.Math.Linear(1, 0, 0.5));
 
-          this.scene.start("GameOverScene", {playerSpriteName: this.playerSpriteName, currentScore: this.currentScore, win: true});
+      this.cameras.main.fadeOut(1000, 0, 0, 0);
+      this.cameras.main.once("camerafadeoutcomplete", () => {
+        this.scene.start("GameOverScene", {
+          playerSpriteName: this.playerSpriteName,
+          currentScore: this.currentScore,
+          win: true,
         });
+      });
     });
 
     this.physics.add.collider(this.player, ground);
@@ -355,7 +419,8 @@ Good luck!`;
         if (p.y < m.y - 32) {
           this.currentScore += 200;
           m.fall();
-          p.setVelocityY(-200);
+          p.setVelocityY(this.baseJumpVel * 0.9);
+          this.tmpSpeedBoost = 1.5;
           m.on("animationcomplete", () => {
             m.destroy();
           });
@@ -365,7 +430,6 @@ Good luck!`;
           this.timeTicking = false;
           this.player.body.enable = false;
           this.player.anims.play("turn");
-
           this.cameras.main.fadeOut(1000, 0, 0, 0);
           this.cameras.main.once("camerafadeoutcomplete", () => {
             this.scene.start("GameOverScene", {
@@ -406,7 +470,7 @@ Good luck!`;
 
     this.scoreText.setDepth(3);
     this.timeText.setDepth(3);
-    this.timeLimit = 6000;
+    this.timeLimit = 2400;
     this.timeTicking = true;
 
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -424,7 +488,7 @@ Good luck!`;
           this.timeLimit--;
         }
 
-        this.timeText.text = `00:${(this.timeLimit / 10).toFixed(1).padStart(4, "0")}`;
+        this.timeText.text = getTimeString(this.timeLimit);
 
         if (this.timeLimit === 0) {
           if (this.movingOn) return;
@@ -450,81 +514,21 @@ Good luck!`;
 
     if (!window.instructionsShowing) return;
 
-    this.instructionsRectBorder = this.add
-      .rectangle(
-        instructionsEdge,
-        instructionsEdge,
-        width - instructionsEdge * 2,
-        height - instructionsEdge * 2,
-        0xffffff,
-        1,
-      )
-      .setOrigin(0, 0)
-      .setScrollFactor(0, 0);
-    this.instructionsRectBorder.setDepth(4);
-
-    this.instructionsRect = this.add
-      .rectangle(
-        instructionsEdge + 5,
-        instructionsEdge + 5,
-        width - (instructionsEdge + 5) * 2,
-        height - (instructionsEdge + 5) * 2,
-        0x000000,
-        1,
-      )
-      .setOrigin(0, 0)
-      .setScrollFactor(0, 0);
-    this.instructionsRect.setDepth(4);
-
-    this.instructionsText = this.add
-      .bitmapText(
-        width * 0.5,
-        height * 0.5,
-        "pixelfont",
-        this.instructionsString,
-        12,
-      )
-      .setOrigin(0.5, 0.5)
-      .setScrollFactor(0, 0);
-    this.instructionsText.setDepth(4);
-
-    this.aBtn = this.add
-      .image(width * 0.87, height * 0.78 + 20, "ABtn")
-      .setOrigin(1, 1)
-      .setScrollFactor(0, 0);
-    this.aBtn.setAlpha(window.CONTROLLER ? 1 : 0);
-    this.aBtn.setDepth(4);
+    this.instructionsMsg = new Message(
+      this,
+      instructionsEdge,
+      instructionsEdge,
+      this.instructionsString,
+      width - instructionsEdge * 2,
+      height - instructionsEdge * 2,
+      window.CONTROLLER,
+      true,
+      24
+    );
 
     this.map = map;
-
-    levelsMap["Winter"].mirrored = false;
-    levelsMap["Winter"].groundsetTiles = "tiles";
-    levelsMap["Winter"].portal = winterToSpringPortal[0];
-    levelsMap["Winter"].portalSide = "right";
-    levelsMap["Winter"].nextLevel = "Spring";
-
-    levelsMap["Spring"].mirrored = true;
-    levelsMap["Spring"].groundsetTiles = "tiles2";
-    levelsMap["Spring"].portal = springToSummerPortal[0];
-    levelsMap["Spring"].onPortal = () => {
-      this.baseJumpVel = -400;
-    };
-    levelsMap["Spring"].portalSide = "left";
-    levelsMap["Spring"].nextLevel = "Summer";
-
-    levelsMap["Summer"].mirrored = false;
-    levelsMap["Summer"].groundsetTiles = "tiles3";
-    levelsMap["Summer"].portal = summerToFallPortal[0];
-    levelsMap["Summer"].onPortal = () => {
-      this.baseRunVel = 100;
-    };
-    levelsMap["Summer"].portalSide = "right";
-    levelsMap["Summer"].nextLevel = "Fall";
-    levelsMap["Summer"].portalImage = "Key";
-
-    levelsMap["Fall"].mirrored = false;
-    levelsMap["Fall"].groundsetTiles = "tiles4";
-    levelsMap["Fall"].portal = undefined;
+    this.width = width;
+    this.height = height;
 
     this.loadLevel("Winter");
   }
@@ -534,37 +538,92 @@ Good luck!`;
     this.mirrored = levelsMap[name].mirrored;
     this.map.addTilesetImage("groundset", levelsMap[name].groundsetTiles);
 
-    const portalObj = levelsMap[name].portal;
-    if (!portalObj) return;
-    const img = levelsMap[name].portalImage;
-    const portal = new Portal({
-      scene: this,
-      x: img ? portalObj.x - portalObj.width : portalObj.x,
-      y: portalObj.y + portalObj.height / 2,
-      img: img || "Portal"
-    });
-    this.portals.add(portal);
-    this.physics.add.existing(portal, true);
-    this.physics.add.overlap(this.player, portal, () => {
-      if (levelsMap[name].portalSide === "right" && this.player.x < portal.x)
-        return;
-      if (
-        levelsMap[name].portalSide === "left" &&
-        this.player.x > portal.x + 16
-      )
-        return;
-      portal.destroy();
+    const portalLayerName = levelsMap[name].portal;
+    const coinsLayerName = levelsMap[name].coins;
+    const monstersLayerName = levelsMap[name].monsters;
+    const sceneMsgTxt = levelsMap[name].sceneMsg;
 
-      if (levelsMap[name].onPortal) {
-        levelsMap[name].onPortal();
+    if (sceneMsgTxt) {
+      this.sceneMsg && this.sceneMsg.destroy();
+      this.sceneMsg = new Message(
+        this,
+        this.width - 420,
+        this.height - 110,
+        sceneMsgTxt,
+        400,
+        95,
+        false,
+        true,
+        24,
+        name === "Winter" ? "" : `split: ${getTimeString(this.timeLimit)}`
+      );
+
+      this.sceneMsg.hide(0);
+      this.sceneMsgShow = () => {
+        setTimeout(() => {
+          this.sceneMsg.show(1000);
+          setTimeout(() => {
+            this.sceneMsg.hide(1000);
+          }, 5000);
+        }, 1000);
+      };
+
+      if (!window.instructionsShowing) {
+        this.sceneMsgShow();
       }
+    }
 
-      this.loadLevel(levelsMap[name].nextLevel);
-    });
+    if (portalLayerName) {
+      const portalObj = this.map.getObjectLayer(portalLayerName)["objects"][0];
+      const img = levelsMap[name].portalImage;
+      const portal = new Portal({
+        scene: this,
+        x: img ? portalObj.x - portalObj.width : portalObj.x,
+        y: portalObj.y + portalObj.height / 2,
+        img: img || "Portal",
+      });
+      this.portals.add(portal);
+      this.physics.add.existing(portal, true);
+      this.physics.add.overlap(this.player, portal, () => {
+        if (levelsMap[name].portalSide === "right" && this.player.x < portal.x)
+          return;
+        if (
+          levelsMap[name].portalSide === "left" &&
+          this.player.x > portal.x + 16
+        )
+          return;
+        portal.destroy();
+
+        if (levelsMap[name].onPortal) {
+          levelsMap[name].onPortal(this);
+        }
+
+        this.loadLevel(levelsMap[name].nextLevel);
+      });
+    }
+
+    this.bulbs.clear(true, true);
+    if (coinsLayerName) {
+      const coinsLayer = this.map.getObjectLayer(coinsLayerName)["objects"];
+      coinsLayer.forEach((lightbulbObj) => {
+        const { x, y } = lightbulbObj;
+        this.bulbs.add(new Lightbulb({ scene: this, x, y }));
+      });
+    }
+
+    this.monsters.clear(true, true);
+    if (monstersLayerName) {
+      const monstersObjectLayer =
+        this.map.getObjectLayer(monstersLayerName)["objects"];
+      monstersObjectLayer.forEach((monsterObj) => {
+        const { x, y } = monsterObj;
+        const newMonster = new Monster({ scene: this, x, y });
+        this.monsters.add(newMonster);
+      });
+    }
   }
 
   update() {
-
     this.scoreText.setText(`SCORE: ${this.currentScore}`);
 
     const canvasElement = document.querySelector("canvas");
@@ -601,7 +660,17 @@ Good luck!`;
 
     canvasElement.style.left = `${this.canvasLeft}%`;
 
+    if (this.overlapFinalDoor) {
+      this.doorMsg.show();
+    } else {
+      this.doorMsg.hide();
+    }
+
+    this.overlapFinalDoor = false;
+
     if (window.instructionsShowing) {
+      this.instructionsMsg.show();
+
       if (this.cursors.space.isDown) {
         this.spaceDown = true;
       }
@@ -609,35 +678,28 @@ Good luck!`;
       if (this.spaceDown == true && this.cursors.space.isUp) {
         this.spaceDown = false;
         window.instructionsShowing = false;
-        this.instructionsRectBorder.destroy();
-        this.instructionsRect.destroy();
-        this.instructionsText.destroy();
-        this.aBtn.destroy();
+        this.instructionsMsg.hide();
+        this.sceneMsgShow && this.sceneMsgShow();
       }
 
       return;
     }
 
-    const runVelocity = this.baseRunVel * (this.cursors.shift.isDown ? 4 : 1);
-    const jumpVelocity = this.baseJumpVel * (this.cursors.shift.isDown ? 1.5 : 1);
+    const runVelocity =
+      this.baseRunVel *
+      (this.cursors.shift.isDown ? 4 : 1) *
+      this.tmpSpeedBoost;
+    const jumpVelocity =
+      this.baseJumpVel * (this.cursors.shift.isDown ? 1.5 : 1);
 
-    const targetAlpha = Math.max(
-      0,
-      this.startDark - this.bulbCount * this.bulbLight,
-    );
-    const currentAlpha = this.overlay.fillAlpha;
-    this.overlay.setFillStyle(
-      0x000000,
-      Phaser.Math.Linear(currentAlpha, targetAlpha, 0.1),
-    );
-
-    const bodyOnFloor = this.player.body.onFloor();
     let animToPlay;
 
     // update monsters
     this.monsters.children.iterate((monster) => {
       monster.update();
     });
+
+    const bodyOnFloor = this.player.body.onFloor();
 
     if (this.movingOn) {
       return;
@@ -659,8 +721,14 @@ Good luck!`;
     animToPlay = bodyOnFloor ? animToPlay : "jump";
     this.player.anims.play(animToPlay, true);
 
-    if (this.cursors.space.isDown && bodyOnFloor) {
+    if (
+      this.cursors.space.isDown &&
+      bodyOnFloor &&
+      this.player.body.velocity.y === 0
+    ) {
       this.player.setVelocityY(jumpVelocity);
+    } else if (bodyOnFloor && this.player.body.velocity.y === 0) {
+      this.tmpSpeedBoost = 1;
     }
   }
 }
