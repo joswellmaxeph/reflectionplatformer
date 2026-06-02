@@ -23,10 +23,10 @@ function getSortedHighScoresWithNew(newScore) {
 export default class GameOverScene extends Phaser.Scene {
   constructor() {
     super("GameOverScene");
-    window.scene = "GameOverScene";
   }
   
   init (data) {
+    window.scene = "GameOverScene";
     this.win = data.win;
     this.finalScore = data.currentScore || 0;
     this.lossReason = data.lossReason;
@@ -38,6 +38,7 @@ export default class GameOverScene extends Phaser.Scene {
   }
 
   async create() {
+    window.scene = "GameOverScene";
     const width = this.scale.width;
     const height = this.scale.height;
     this.initialsTextInScores = false;

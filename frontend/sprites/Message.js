@@ -1,6 +1,5 @@
 export default class Message {
   constructor(scene, x, y, text, width, height, showA = false, moveWithCamera = false, fontSize = 12, subtitle = "") {
-    console.log(showA);
     this.scene = scene;
     this.text = text;
     this.x = x;

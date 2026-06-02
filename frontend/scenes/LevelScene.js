@@ -53,7 +53,6 @@ window.gamePaused = false;
 window.instructionsShowing = true;
 
 function pauseMenuHandler(event) {
-  console.log("hye");
   if (window.scene !== "MainScene") return;
   if (event.code === "Enter") {
     if (!window.gamePaused && !window.instructionsShowing) {
@@ -445,11 +444,11 @@ Good luck!`;
 
     if (window.CRT) {
       this.scoreText = this.add
-        .bitmapText(50, 20, "pixelfontblack", "", 12)
+        .bitmapText(50, 20, "pixelfontblack", "", 24)
         .setOrigin(0, 0)
         .setScrollFactor(0, 0);
       this.timeText = this.add
-        .bitmapText(width - 50, 20, "pixelfontblack", "", 12)
+        .bitmapText(width - 50, 20, "pixelfontblack", "", 24)
         .setOrigin(1, 0)
         .setScrollFactor(0, 0);
     } else {
