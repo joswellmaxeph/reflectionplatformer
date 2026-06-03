@@ -11,7 +11,8 @@ export default class Preloader extends Phaser.Scene {
     this.load.bitmapFont("pixelfontyellow", "public/assets/fonts/pixelfontyellow.png", "public/assets/fonts/pixelfont.xml");
     this.load.bitmapFont("pixelfontblack", "public/assets/fonts/pixelfontblack1.png", "public/assets/fonts/pixelfont.xml");
 
-    this.load.image('tiles', 'public/assets/groundtiles.png');
+    this.load.image('tiles', 'public/assets/wintertiles.png');
+    this.load.image('skytry', 'public/assets/skytry.png');
     this.load.image('tiles2', 'public/assets/groundtilestest.png');
     this.load.image('tiles3', 'public/assets/groundtilessummer.png');
     this.load.image('tiles4', 'public/assets/groundtilesfall.png');
@@ -42,7 +43,7 @@ export default class Preloader extends Phaser.Scene {
     this.load.image('hourglass', 'public/assets/hourglass.png');
     this.load.tilemapTiledJSON('mcctilemap', 'public/assets/neighborhoodmap2.json');
     this.load.tilemapTiledJSON('wintertest3', 'public/assets/wintertest3.json');
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 10; i++) {
       const pName = `player${i}`;
       this.load.spritesheet(pName, `public/assets/${pName}sheet.png`, { frameWidth: 32, frameHeight: 32 });
     }

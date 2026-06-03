@@ -8,7 +8,7 @@ export default class CharacterSelect extends Phaser.Scene {
     this.load.image('mcc', 'public/assets/mcc logo pixel.png');
 
     this.playerSpriteSheets = [];
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 10; i++) {
       const pName = `player${i}`;
       this.playerSpriteSheets.push(pName);
     }
