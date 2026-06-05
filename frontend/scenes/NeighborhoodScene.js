@@ -4,7 +4,7 @@ export default class NeighborhoodScene extends LevelScene {
   constructor() {
     const data = {};
 
-    data.skyImgName = "skytry"
+    data.skyImgName = "skytry2"
     data.tileMapName = "wintertest3";
     data.playerStartX = 259;
     data.playerStartY = -10;

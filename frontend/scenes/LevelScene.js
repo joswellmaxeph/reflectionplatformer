@@ -3,8 +3,10 @@ import Monster from "../sprites/Monster.js";
 import Portal from "../sprites/Portal.js";
 import Message from "../sprites/Message.js";
 import SnowFlake from "../sprites/SnowFlake.js";
+import CherryBlossom from "../sprites/CherryBlossom.js";
+import Flake from "../sprites/Flake.js";
 
-const NUM_FLAKES = 200;
+const NUM_FLAKES = 1000;
 
 const levelsMap = {
   Winter: {
@@ -14,15 +16,14 @@ const levelsMap = {
     portalSide: "right",
     nextLevel: "Spring",
     playerSprite: "player9",
-    onPortal: (scene) => {
-      scene.timeLoss = 2;
-    }
+    skyImgName: "skytry",
   },
   Spring: {
-    sceneMsg: ` . . . YOU LOSE TIME
+    sceneMsg: ` . . . YOU FACE CHANGE
     IN THE SPRING . . . `,
     mirrored: true,
     groundsetTiles: "tiles2",
+    skyImgName: "skytry2",
     portal: "SpringToSummerPortal",
     onPortal: (scene) => {
       scene.baseJumpVel = -400;
@@ -189,12 +190,6 @@ Good luck!`;
 
     this.bulbCount = 0;
 
-    const sky = this.add
-      .image(width * 0.5, height * 0.5, this.skyImgName)
-      .setScrollFactor(0, 0);
-    sky.setDepth(0.001);
-    sky.setScale(12.8);
-
     const map = this.make.tilemap({ key: this.tileMapName });
     const tileset = map.addTilesetImage("groundset", "tiles");
     const tileset2 = map.addTilesetImage("groundset", "tiles2");
@@ -302,9 +297,7 @@ Good luck!`;
     //   .setDepth(0.9);
 
     this.flakes = [];
-    for (let i = 0; i < NUM_FLAKES; i++) {
-      this.flakes.push(new SnowFlake(this, -500 +Math.random() * (this.scale.width + 1000), Math.random() * this.scale.height));
-    }
+
 
     this.bulbs = this.physics.add.group({
       immovable: true,
@@ -421,7 +414,7 @@ Good luck!`;
       (p, b) => {
         b.destroy();
         this.bulbCount++;
-        this.timeLimit += this.bulbAmount;
+        this.currentScore += 100;
       },
     );
     this.bulbCollider.overlapOnly = true;
@@ -433,7 +426,7 @@ Good luck!`;
       this.monsters,
       (p, m) => {
         if (p.y < m.y - 32) {
-          this.timeLimit += 40;
+          this.currentScore += 200;
           m.fall();
           p.setVelocityY(this.baseJumpVel * 0.9);
           this.tmpSpeedBoost = 1.5;
@@ -460,15 +453,15 @@ Good luck!`;
     );
 
     if (window.CRT) {
-      // this.add.rectangle(25, 15, 200, 24, 0xFFFFFF, 1).setOrigin(0, 0).setScrollFactor(0, 0).setDepth(2.9);
-      this.add.rectangle(width / 2, 15, 160, 24, 0xFFFFFF, 1).setOrigin(0.5, 0).setScrollFactor(0, 0).setDepth(2.9);
-      // this.scoreText = this.add
-      //   .bitmapText(50, 20, "pixelfontblack", "", 18)
-      //   .setOrigin(0, 0)
-      //   .setScrollFactor(0, 0);
+      this.add.rectangle(0, 15, 200, 24, 0xFFFFFF, 1).setOrigin(0, 0).setScrollFactor(0, 0).setDepth(2.9);
+      this.add.rectangle(width - 125, 15, 150, 24, 0xFFFFFF, 1).setOrigin(0, 0).setScrollFactor(0, 0).setDepth(2.9);
+      this.scoreText = this.add
+        .bitmapText(25, 20, "pixelfontblack", "", 18)
+        .setOrigin(0, 0)
+        .setScrollFactor(0, 0);
       this.timeText = this.add
-        .bitmapText(width / 2, 20, "pixelfontblack", "", 18)
-        .setOrigin(0.5, 0)
+        .bitmapText(width - 100, 20, "pixelfontblack", "", 18)
+        .setOrigin(0, 0)
         .setScrollFactor(0, 0);
     } else {
       const topBarRect = this.add
@@ -486,7 +479,7 @@ Good luck!`;
         .setScrollFactor(0, 0);
     }
 
-    // this.scoreText.setDepth(3);
+    this.scoreText.setDepth(3);
     this.timeText.setDepth(3);
     this.timeLimit = 2400;
     this.timeTicking = true;
@@ -561,6 +554,17 @@ Good luck!`;
     const monstersLayerName = levelsMap[name].monsters;
     const sceneMsgTxt = levelsMap[name].sceneMsg;
     const playerSpriteName = levelsMap[name].playerSprite;
+    const skyImgName = levelsMap[name].skyImgName;
+
+    if (this.sky) {
+      this.sky.destroy();
+    }
+
+    this.sky = this.add
+      .image(this.width * 0.5, this.height * 0.5, skyImgName)
+      .setScrollFactor(1/25, 0);
+    this.sky.setDepth(0.001);
+    this.sky.setScale(12.8);
 
     if (playerSpriteName) {
       this.anims.remove("left");
@@ -678,10 +682,14 @@ Good luck!`;
         this.monsters.add(newMonster);
       });
     }
+
+    for (let i = 0; i < NUM_FLAKES; i++) {
+      this.flakes.push(new Flake(this, -2000 + Math.random() * (this.scale.width + 4000), Math.random() * this.scale.height, this.currentLevel));
+    }
   }
 
   update(time) {
-    // this.scoreText.setText(`SCORE: ${this.currentScore}`);
+    this.scoreText.setText(`SCORE: ${this.currentScore}`);
 
     const canvasElement = document.querySelector("canvas");
 
@@ -691,9 +699,7 @@ Good luck!`;
       this.baseRunVel = 200;
     }
 
-    this.flakes.forEach((flake) => {
-      flake.update(time, this.player.body.velocity.x);
-    });
+    let movingHoriz = this.player.body.velocity.x !== 0;
 
     if (this.player.x >= 1792) {
       canvasElement.classList.remove("flippy");
@@ -717,9 +723,14 @@ Good luck!`;
     } else {
       canvasElement.classList.remove("flippy");
       this.canvasLeft = this.mirrored ? -100.25 : 0;
+      movingHoriz = false;
     }
 
     canvasElement.style.left = `${this.canvasLeft}%`;
+
+    this.flakes.forEach((flake) => {
+      flake.update(time, this.player.body.velocity.x / (movingHoriz ? 5 : 1), this.currentLevel);
+    });
 
     if (this.overlapFinalDoor) {
       this.doorMsg.show();

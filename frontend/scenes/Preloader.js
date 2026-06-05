@@ -13,7 +13,8 @@ export default class Preloader extends Phaser.Scene {
 
     this.load.image('tiles', 'public/assets/wintertiles.png');
     this.load.image('skytry', 'public/assets/skytry.png');
-    this.load.image('tiles2', 'public/assets/groundtilestest.png');
+    this.load.image('skytry2', 'public/assets/skytry2.png');
+    this.load.image('tiles2', 'public/assets/groundtiles.png');
     this.load.image('tiles3', 'public/assets/groundtilessummer.png');
     this.load.image('tiles4', 'public/assets/groundtilesfall.png');
     this.load.image('wintertest3img', 'public/assets/wintertest3.png');
