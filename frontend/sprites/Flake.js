@@ -1,7 +1,7 @@
 const MIN_SIZE_SNOW = 2;
-const MAX_SIZE_SNOW = 4;
+const MAX_SIZE_SNOW = 5;
 const MIN_SPEED_SNOW = 1;
-const MAX_SPEED_SNOW = 2;
+const MAX_SPEED_SNOW = 1.5;
 const MAX_X_VEL_SNOW = .5;
 
 const MIN_SIZE_CHERRY = 3;
@@ -31,10 +31,15 @@ export default class Flake {
     }
 
     if (type === "Winter") {
-      this.size = Math.random() * (MAX_SIZE_SNOW - MIN_SIZE_SNOW) + MIN_SIZE_SNOW;
-      this.speed = Math.random() * (MAX_SPEED_SNOW - MIN_SPEED_SNOW) + MIN_SPEED_SNOW;
-      const flake = this.scene.add.ellipse(this.x, this.y, this.size, this.size, 0xFFFFFF, 1).setOrigin(0.5).setScrollFactor(0).setDepth(7);
-      this.pieces.push(flake);
+      if (Math.random() > .4) {
+        this.size = Math.random() * (MAX_SIZE_SNOW - MIN_SIZE_SNOW) + MIN_SIZE_SNOW;
+        this.speed = Math.random() * (MAX_SPEED_SNOW - MIN_SPEED_SNOW) + MIN_SPEED_SNOW;
+        const flake = this.scene.add.ellipse(this.x, this.y, this.size, this.size, 0xFFFFFF, 1).setOrigin(0.5).setScrollFactor(0).setDepth(7);
+        this.pieces.push(flake);
+
+
+
+      }
     } else if (type === "Spring") {
       if (Math.random() > .95) {
         this.size = Math.random() * (MAX_SIZE_CHERRY - MIN_SIZE_CHERRY) + MIN_SIZE_CHERRY;
