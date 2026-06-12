@@ -38,10 +38,12 @@ export default class TitleSplash extends Phaser.Scene {
 
     const startMsg = `PRESS ${window.CONTROLLER ? "START" : "SPACE"}`;
 
-    const pressStartText = this.add.bitmapText(width * .5, height * .75, 'pixelfontyellow', startMsg, 48).setOrigin(0.5);
+    const mhldmsg = this.add.bitmapText(width * .5, height * .3, 'pixelfont', "maxwellhouselaborday2026", 24).setOrigin(0.5);
+    const titleMsg = this.add.bitmapText(width * .5, height * .5, 'pixelfont', "S e a S o n S", 48).setOrigin(0.5);
+    const pressStartText = this.add.bitmapText(width * .5, height * .7, 'pixelfontyellow', startMsg, 32).setOrigin(0.5);
 
     const highScorerMsg = getHighScorerMessage();
-    const highScoreText = this.add.bitmapText(width * .5, height * .85, 'pixelfont', highScorerMsg, 24).setOrigin(0.5);
+    const highScoreText = this.add.bitmapText(width * .5, height * .8, 'pixelfont', highScorerMsg, 24).setOrigin(0.5);
 
     const blinkEvent = this.time.addEvent({
       delay: 500,
