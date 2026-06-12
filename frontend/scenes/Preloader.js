@@ -14,6 +14,10 @@ export default class Preloader extends Phaser.Scene {
     this.load.image('tiles', 'public/assets/wintertiles.png');
     this.load.image('skytry', 'public/assets/skytry.png');
     this.load.image('skytry2', 'public/assets/skytry2.png');
+    this.load.image('springsky', 'public/assets/springsky.png');
+    this.load.image('fallsky', 'public/assets/fallsky.png');
+    this.load.image('falltiles', 'public/assets/falltiles.png');
+    this.load.image('springtiles', 'public/assets/springtiles.png');
     this.load.image('tiles2', 'public/assets/groundtiles.png');
     this.load.image('tiles3', 'public/assets/groundtilessummer.png');
     this.load.image('tiles4', 'public/assets/groundtilesfall.png');
@@ -44,10 +48,12 @@ export default class Preloader extends Phaser.Scene {
     this.load.image('hourglass', 'public/assets/hourglass.png');
     this.load.tilemapTiledJSON('mcctilemap', 'public/assets/neighborhoodmap2.json');
     this.load.tilemapTiledJSON('wintertest3', 'public/assets/wintertest3.json');
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 12; i++) {
       const pName = `player${i}`;
       this.load.spritesheet(pName, `public/assets/${pName}sheet.png`, { frameWidth: 32, frameHeight: 32 });
     }
+
+    this.load.spritesheet('leaves', 'public/assets/leaves.png', { frameWidth: 8, frameHeight: 8 });
 
     this.load.image('sky', 'public/assets/bgsky.png');
 

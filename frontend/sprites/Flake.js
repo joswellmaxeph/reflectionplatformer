@@ -10,6 +10,11 @@ const MIN_SPEED_CHERRY = .5;
 const MAX_SPEED_CHERRY = 1;
 const MAX_X_VEL_CHERRY = 0;
 
+const randomFallColor = () => {
+  const colorIdx = Math.floor(Math.random() * fallColors.length);
+  return fallColors[colorIdx];
+}
+
 export default class Flake {
   constructor(scene, x, y, type) {
     this.scene = scene;
@@ -39,6 +44,17 @@ export default class Flake {
         this.pieces.push(this.scene.add.ellipse(this.x + this.size * 0.5, this.y - this.size * 0.5, this.size, this.size, 0xFFD1DC, 1).setOrigin(0.5).setScrollFactor(0).setDepth(7));
         this.pieces.push(this.scene.add.ellipse(this.x - this.size * 0.5, this.y + this.size * 0.5, this.size, this.size, 0xFFD1DC, 1).setOrigin(0.5).setScrollFactor(0).setDepth(7));
         this.pieces.push(this.scene.add.ellipse(this.x + this.size * 0.5, this.y + this.size * 0.5, this.size, this.size, 0xFFD1DC, 1).setOrigin(0.5).setScrollFactor(0).setDepth(7));
+      }
+    } else if (type === "Fall") {
+      if (Math.random() > .1) {
+        this.speed = Math.random() * (.8 - .2) + .2;
+        const maxSize = 8;
+        const minSize = 4;
+        this.size = Math.random() * (maxSize - minSize) + minSize;
+
+        // pick a random leaf img from the spritesheet and add it as a piece
+        const leafIdx = Math.floor(Math.random() * 9);
+        this.pieces.push(this.scene.add.image(this.x, this.y, 'leaves', leafIdx).setOrigin(0.5).setScrollFactor(0).setDepth(7).setDisplaySize(this.size, this.size));
       }
     }
   }

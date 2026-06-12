@@ -22,8 +22,8 @@ const levelsMap = {
     sceneMsg: ` . . . YOU FACE CHANGE
     IN THE SPRING . . . `,
     mirrored: true,
-    groundsetTiles: "tiles2",
-    skyImgName: "skytry2",
+    groundsetTiles: "springtiles",
+    skyImgName: "springsky",
     portal: "SpringToSummerPortal",
     onPortal: (scene) => {
       scene.baseJumpVel = -400;
@@ -31,13 +31,14 @@ const levelsMap = {
     portalSide: "left",
     nextLevel: "Summer",
     coins: "SpringCoins",
-    playerSprite: "player10",
+    playerSprite: "player11",
   },
   Summer: {
     sceneMsg: ` . . . YOU ARE HAUNTED
     IN THE SUMMER . . . `,
     mirrored: false,
-    groundsetTiles: "tiles3",
+    groundsetTiles: "tiles2",
+    skyImgName: "skytry2",
     portal: "SummerToFallPortal",
     onPortal: (scene) => {
       scene.baseRunVel = 100;
@@ -53,10 +54,11 @@ const levelsMap = {
     sceneMsg: ` . . . YOU MUST RETURN
     IN THE FALL . . . `,
     mirrored: false,
-    groundsetTiles: "tiles4",
+    skyImgName: "fallsky",
+    groundsetTiles: "falltiles",
     portal: undefined,
     monsters: "FallMonsters",
-    playerSprite: "player10",
+    playerSprite: "player12",
   },
 };
 
